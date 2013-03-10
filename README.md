@@ -3,6 +3,8 @@ Python Sociallib
 
 _This lib is still a work in progress. There is nothing usable yet._
 
+Version 0.0.1 (I told you there is nothing usable yet)
+
 Social networking websites are made for humans and let them interact between each other using (more or less) nice UI. Developpers are human too (more or less) and should be able to create easily apps interacting with these websites through API. You have to use OAuth, make HTTPS requests, manage tokens,... Let's make that easy. This is was this lib is about.
 
     >>> tw = Twitter()
