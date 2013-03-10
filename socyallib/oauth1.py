@@ -1,3 +1,4 @@
+from .core import CoreManager
 from requests_oauthlib import OAuth1
 import requests
 
@@ -12,10 +13,10 @@ else:
     input = raw_input
 
 
-class OAuth1API():
+class OAuth1API(CoreManager):
 
     site_type = "default"
-    api_url = "https://api.default.com/"
+    api_url = "https://api.example.com/"
 
     request_token_uri = '/oauth/request_token'
     authorize_uri = '/oauth/authorize?oauth_token='
@@ -25,8 +26,6 @@ class OAuth1API():
     # released application
     client_key = ""
     client_secret = ""
-    token = ""
-    token_secret = ""
 
     def __init__(self, account_name="Default", configuration_file=None):
         """Create an OAuth1 accound handler object
@@ -49,7 +48,7 @@ class OAuth1API():
             self.load(configuration_file)
 
     def load(self, configuration_file="config.json"):
-        """Load the config file
+        """Load the configuration
 
         :param configuration_file: path to JSON config file containing the
         account information following the structure in config.json.example. The

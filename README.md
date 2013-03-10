@@ -13,13 +13,12 @@ Social networking websites are made for humans and let them interact between eac
     Verifier: 123456
     Account authenticated
     >>> tw.post("Long live API !")
-    >>> timeline = tw.getFeed()
-    >>> timeline.read()
+    >>> tw.feed.read()
     [{'from':'@duckduckgo','text':'Happy birthday to @Raspberry_Pi !! Big things come in small packages : )',...
 
 Websites often provide activity feeds in their own format which makes the hell of a job for developpers to mix feeds from different websites in one application. That should not be the case.
 
-    >>> feed = tw.getFeed(user="@ThePSF")
+    >>> feed = tw.feed(user="@ThePSF")
     >>> feed.read(format="RSS")
     <?xml version="1.0" encoding="UTF-8"?>
     <rss version="2.0"...
