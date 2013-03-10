@@ -21,6 +21,9 @@ class CoreManager:
 
 class CoreFeed:
 
+    def __init__(self, feed_url, **kwargs):
+        self.url = feed_url
+
     @property
     def latest(self, **kwargs):
         """Return the latest object of the feed"""

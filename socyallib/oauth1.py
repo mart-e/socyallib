@@ -3,6 +3,7 @@ from requests_oauthlib import OAuth1
 import requests
 
 import json
+import logging
 import os
 import sys
 
@@ -13,19 +14,21 @@ else:
     input = raw_input
 
 
-class OAuth1API(CoreManager):
+class OAuth1Manager(CoreManager):
 
-    site_type = "default"
-    api_url = "https://api.example.com/"
+    SITE_TYPE = "default"
+    API_URL = "https://api.example.com/"
 
-    request_token_uri = '/oauth/request_token'
-    authorize_uri = '/oauth/authorize?oauth_token='
-    access_token_uri = '/oauth/access_token'
+    REQUEST_TOKEN_URI = '/oauth/request_token'
+    AUTHORIZE_URI = '/oauth/authorize?oauth_token='
+    ACCESS_TOKEN_URI = '/oauth/access_token'
 
     # hardcoded credentials are for test only, do not rely on them for your
     # released application
-    client_key = ""
-    client_secret = ""
+    client_key = None
+    client_secret = None
+    token = None
+    token_secret = None
 
     def __init__(self, account_name="Default", configuration_file=None):
         """Create an OAuth1 accound handler object
@@ -40,6 +43,7 @@ class OAuth1API(CoreManager):
         It is the responsability of the program to handle the storage of
         credentials."""
         self.account_name = account_name
+        self.logger = logging.getLogger('socyallib.oauth1')
 
         if configuration_file is None:
             self.store_configuration = False
@@ -47,12 +51,15 @@ class OAuth1API(CoreManager):
             self.store_configuration = True
             self.load(configuration_file)
 
+        if self.client_key and self.client_secret:
+            self.authenticate()
+
     def load(self, configuration_file="config.json"):
         """Load the configuration
 
         :param configuration_file: path to JSON config file containing the
         account information following the structure in config.json.example. The
-        configuration of an account should at least contain 'site_name',
+        configuration of an account should at least contain 'site_type',
         'client_key' and 'client_secret'.
         """
         self.configuration_file = configuration_file
@@ -64,7 +71,7 @@ class OAuth1API(CoreManager):
         with open(filename, 'r') as f:
             config = json.load(f)
 
-        assert self.account_name in config, "Invalid config file, no 'accounts' key found for account {0}".format(self.account_name)
+        assert self.account_name in config, "Invalid config file, no account found for {0}".format(self.account_name)
         account_config = config[self.account_name]
 
         # client key and client secret are mandatory
@@ -78,25 +85,28 @@ class OAuth1API(CoreManager):
         if 'token_secret' in account_config:
             self.token_secret = str(account_config['token_secret'])
 
-    def authenticate(self, wizard=False):
+    def authenticate(self, wizard=False, verify=True):
         """Connect the account
 
         Connect to the service and retrieves tokens if none are available.
-        Once valid tokens are loaded, this step can be skipped.
         :param wizard: Enables assisted authentication process in the terminal
         if no tokens are available. Applications with GUI will most likely not
         enable this parameter and use self.get_authorization_url() followed by
-        self.retrieve_tokens() to retrieve the same informations.
+        self.retrieve_tokens() to retrieve the same informations
+        :param verify: Verify the validity of the tokens if true
         :type wizard: boolean
+        :type verify: boolean
+        :return: True if the authentication was successful
         """
         if self.token and self.token_secret:
-            if self.verify_tokens():
+            if not verify or self.verify_tokens():
                 self.oauth = OAuth1(self.client_key,
                                     client_secret=self.client_secret,
                                     resource_owner_key=self.token,
                                     resource_owner_secret=self.token_secret)
                 return True
             else:
+                self.logger.error("Invalid tokens")
                 return False
         else:
             if wizard:
@@ -110,6 +120,7 @@ class OAuth1API(CoreManager):
                                     resource_owner_secret=self.token_secret)
                 return True
             else:
+                self.logger.warning("No tokens in manual mode, not authenticated")
                 return False
 
     def verify_tokens(self):
@@ -127,13 +138,13 @@ class OAuth1API(CoreManager):
         The authorization page will give a verifier code that should be used
         to get the final tokens."""
         oauth = OAuth1(self.client_key, client_secret=self.client_secret)
-        request_token_url = urljoin(self.api_url,self.request_token_uri)
+        request_token_url = urljoin(self.API_URL, self.REQUEST_TOKEN_URI)
         r = requests.post(url=request_token_url, auth=oauth)
         credentials = parse_qs(r.content.decode())
         self.temporary_token = credentials.get('oauth_token')[0]
         self.temporary_token_secret = credentials.get('oauth_token_secret')[0]
 
-        return urljoin(self.api_url, self.authorize_uri+resource_owner_key)
+        return urljoin(self.API_URL, self.AUTHORIZE_URI+self.temporary_token)
 
     def retrieve_tokens(self, verifier):
         """Retrieve the oauth tokens and store them in the config file
@@ -146,7 +157,7 @@ class OAuth1API(CoreManager):
                        resource_owner_key=self.temporary_token,
                        resource_owner_secret=self.temporary_token_secret,
                        verifier=str(verifier))
-        access_token_url = urljoin(self.api_url, self.access_token_uri)
+        access_token_url = urljoin(self.API_URL, self.ACCESS_TOKEN_URI)
         r = requests.post(url=access_token_url, auth=oauth)
         credentials = parse_qs(r.content.decode())
         if 'oauth_token' not in credentials or 'oauth_token_secret' not in credentials:
@@ -171,7 +182,7 @@ class OAuth1API(CoreManager):
         if self.account_name not in config:
             config[self.account_name] = {}
 
-        config[self.account_name]['site_name'] = str(self.site_name)
+        config[self.account_name]['site_type'] = str(self.SITE_TYPE)
         config[self.account_name]['client_key'] = str(self.client_key)
         config[self.account_name]['client_secret'] = str(self.client_secret)
         config[self.account_name]['token'] = str(self.token)
