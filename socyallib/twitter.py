@@ -1,8 +1,8 @@
 from .oauth1 import OAuth1Manager
 from .core import CoreFeed
 
+from datetime import datetime
 import requests
-
 import json
 import logging
 import sys
@@ -67,9 +67,9 @@ class TwitterFeed(CoreFeed):
         self.oauth = oauth
         self.user = user
         super(TwitterFeed, self).__init__(feed_url)
-        self.logger = logging.getLogger('Twitter')
+        self.logger = logging.getLogger('socyallib.core.feed')
 
-    def read(self, count=20, format="dict"):
+    def read(self, **kwargs):
         data = {'count': count}
         if self.user:
             data['screen_name'] = self.user
@@ -101,7 +101,32 @@ class TwitterFeed(CoreFeed):
             result['id'] = item['id']
             result['from'] = item['user']['screen_name']
             result['text'] = full_text
-            result['date'] = item['created_at']
+            result['date'] = datetime.strftime("%a %b %d %H:%M:%S %z %Y", item['created_at'])
             return result
         else:
             raise ValueError("Unknown format {0}".format(format))
+
+    def _update(self, size, **kwargs):
+        data = {'count': size}
+        if self.user:
+            data['screen_name'] = self.user
+        r = requests.get(url=self.url, auth=self.oauth, params=data)
+        if r.status_code != 200:
+            if 'errors' in r.content:
+                for error_msg in r.content['errors']:
+                    self.logger.error(error_msg)
+            else:
+                self.logger.error(r.content)
+            return []
+
+        items = json.loads(r.content.decode())
+        sorted_items = sorted(items, key=lambda k: k['date'], invert=True)
+        last_date = datetime.strftime("%a %b %d %H:%M:%S %z %Y", sorted_items[-1]['created_at'])
+        if len(self.items) > 0:
+            first_stored_date = datetime.strftime("%a %b %d %H:%M:%S %z %Y", self.items[0]['created_at'])
+            if last_date < first_stored_date:
+                # merge two lists
+                pass
+            else:
+                # retieve next batch of items
+                pass
