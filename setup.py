@@ -7,7 +7,7 @@ import socyallib
 
 setup(
     name="socyallib",
-    vesion=socyallib.__version__,
+    version=socyallib.__version__,
     packages=find_packages(),
     author="Martin Trigaux",
     author_email="socyallib@dotzero.me",
