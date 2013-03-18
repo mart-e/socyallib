@@ -1,5 +1,5 @@
 from .oauth1 import OAuth1Manager
-from .core import CoreFeed
+from .core import CoreFeed, CoreFeedItem
 
 from datetime import datetime
 import requests
@@ -30,7 +30,7 @@ class Twitter(OAuth1Manager):
         self.logger = logging.getLogger('socyallib.twitter')
 
     @property
-    def timeline(self, timeline="home"):
+    def timeline(self):
         return self.feed(timeline="home")
 
     def feed(self, timeline="home", user=None, **kwargs):
@@ -69,7 +69,7 @@ class TwitterFeed(CoreFeed):
         super(TwitterFeed, self).__init__(feed_url)
         self.logger = logging.getLogger('socyallib.core.feed')
 
-    def read(self, **kwargs):
+    def fetch(self, **kwargs):
         data = {'count': count}
         if self.user:
             data['screen_name'] = self.user
@@ -85,26 +85,8 @@ class TwitterFeed(CoreFeed):
         result = []
         items = json.loads(r.content.decode())
         for item in items:
-            result.append(self.convert_item(item, format))
+            result.append(TwitterFeedItem(item))
         return result
-
-    def convert_item(self, item, format):
-        # remove t.co urls
-        full_text = item['text']
-        for url in item["entities"]["urls"]:
-            full_text = full_text.replace(url["url"], url["expanded_url"])
-
-        if format.lower() == "raw":
-            return item
-        if format.lower() == "dict":
-            result = {}
-            result['id'] = item['id']
-            result['from'] = item['user']['screen_name']
-            result['text'] = full_text
-            result['date'] = datetime.strftime("%a %b %d %H:%M:%S %z %Y", item['created_at'])
-            return result
-        else:
-            raise ValueError("Unknown format {0}".format(format))
 
     def _update(self, size, **kwargs):
         data = {'count': size}
@@ -130,3 +112,24 @@ class TwitterFeed(CoreFeed):
             else:
                 # retieve next batch of items
                 pass
+
+
+class TwitterFeedItem(CoreFeedItem):
+
+    def convert(self, format):
+        # remove t.co urls
+        full_text = item['text']
+        for url in item["entities"]["urls"]:
+            full_text = full_text.replace(url["url"], url["expanded_url"])
+
+        if format.lower() == "raw":
+            return item
+        if format.lower() == "dict":
+            result = {}
+            result['id'] = item['id']
+            result['from'] = item['user']['screen_name']
+            result['text'] = full_text
+            result['date'] = datetime.strftime("%a %b %d %H:%M:%S %z %Y", item['created_at'])
+            return result
+        else:
+            raise ValueError("Unknown format {0}".format(format))

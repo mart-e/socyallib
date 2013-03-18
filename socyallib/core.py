@@ -34,6 +34,7 @@ class CoreFeed:
     def __init__(self, feed_url, **kwargs):
         self.url = feed_url
         self.items = []
+        self.last_update = None
         self.logger = logging.getLogger('socyallib.core.feed')
 
         self.update()
@@ -42,14 +43,8 @@ class CoreFeed:
         return "{0} ({1})".format(self.__class__.__name__, self.url)
 
     def __str__(self, format="activitystream"):
-        """Return the content of the feed
-
-        :param format: the output format of the feed.
-            'raw' a list of items as returned by the website API
-            'activitystream' activity stream format
-            'rss' representation following the standart RSS2.0
-        """
-        return self.__repr__()
+        """Return the content of the feed"""
+        return self.read(format)
 
     def __iter__(self, from_index=0, count=0):
         """A feed is iterable, each iteration return an element"""
@@ -65,7 +60,7 @@ class CoreFeed:
 
         if self.iterate_index >= len(self.items):
             # update the content of the items list
-            self.fetch(from_index=self.iterate_index)
+            self.items.extend(self.fetch(from_index=self.iterate_index))
             if self.iterate_index >= len(self.items):
                 # no more items on the site
                 raise StopIteration()
@@ -86,6 +81,7 @@ class CoreFeed:
         :param from_index: the index number of the first item in the feed. The
         content of this index is dependant of the site (unique id or position
         in the online feed).
+        :return: a list of CoreFeedItem
         """
         raise NotImplementedError
 
@@ -96,17 +92,24 @@ class CoreFeed:
         """
         if not self.last_update or force:
             self.logger.info("Updating feed")
-            self._update()
+            self.items = self.fetch()
             self.last_update = datetime.now()
         else:
             if datetime.now() - self.last_update > self.MAX_UPDATE_DELAY:
                 self.logger.info("Updating feed")
-                self.fetch()
+                self.items = self.fetch()
                 self.last_update = datetime.now()
             else:
                 self.logger.info("Updated recently, skipping")
 
     def read(self, format="activitystream", count=FEED_SIZE):
+        """Return the content of the feed converted
+
+        :param format: the output format of the feed.
+            'raw' a list of items as returned by the website API
+            'activitystream' activity stream format
+            'rss' representation following the standart RSS2.0
+        """
         if format.lower() == "activitystream":
             out = []
             for item in self.__iter__(count=count):

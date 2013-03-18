@@ -165,7 +165,8 @@ class OAuth1Manager(CoreManager):
 
         self.token = credentials.get('oauth_token')[0]
         self.token_secret = credentials.get('oauth_token_secret')[0]
-        self.write_config()
+        if self.store_configuration:
+            self.write_config()
 
         return (self.token, self.token_secret)
 
