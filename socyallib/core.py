@@ -111,7 +111,7 @@ class CoreFeed:
 
         :param format: the output format of the feed.
             'raw' a list of items as returned by the website API
-            'activitystream' activity stream format
+            'activitystream' json activity stream format
             'rss' representation following the standart RSS2.0
         """
         if format.lower() == "activitystream":
@@ -129,9 +129,20 @@ class CoreFeedItem():
         self.raw_value = raw_value
 
     def convert(self, format):
-        """Convert a native object into a specified format"""
+        """Convert a native object into a specified format
+
+        :param format: the outpout format
+            raw: the value as returned by the website
+            object: use the Struct class to access elements, TODO decide format
+            activitystream: json activity stream format
+        """
         raise NotImplementedError
 
     @property
     def raw(self):
         return self.raw_value
+
+
+class Struct:
+    def __init__(self, entries):
+        self.__dict__.update(entries)

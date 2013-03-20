@@ -1,5 +1,5 @@
 from .oauth1 import OAuth1Manager
-from .core import CoreFeed, CoreFeedItem
+from .core import CoreFeed, CoreFeedItem, Struct
 
 from datetime import datetime
 import requests
@@ -124,12 +124,12 @@ class TwitterFeedItem(CoreFeedItem):
 
         if format.lower() == "raw":
             return self.raw_value
-        if format.lower() == "dict":
+        if format.lower() == "object":
             result = {}
             result['id'] = self.raw_value['id']
-            result['from'] = self.raw_value['user']['screen_name']
+            result['sender'] = self.raw_value['user']['screen_name']
             result['text'] = full_text
             result['date'] = datetime.strptime(self.raw_value['created_at'], "%a %b %d %H:%M:%S %z %Y")
-            return result
+            return Struct(result)
         else:
             raise ValueError("Unknown format {0}".format(format))
