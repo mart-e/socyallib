@@ -69,7 +69,7 @@ class TwitterFeed(CoreFeed):
         super(TwitterFeed, self).__init__(feed_url)
         self.logger = logging.getLogger('socyallib.core.feed')
 
-    def fetch(self, **kwargs):
+    def fetch(self, count=CoreFeed.FEED_SIZE, from_index=0, **kwargs):
         data = {'count': count}
         if self.user:
             data['screen_name'] = self.user
@@ -118,18 +118,18 @@ class TwitterFeedItem(CoreFeedItem):
 
     def convert(self, format):
         # remove t.co urls
-        full_text = item['text']
-        for url in item["entities"]["urls"]:
+        full_text = self.raw_value['text']
+        for url in self.raw_value["entities"]["urls"]:
             full_text = full_text.replace(url["url"], url["expanded_url"])
 
         if format.lower() == "raw":
-            return item
+            return self.raw_value
         if format.lower() == "dict":
             result = {}
-            result['id'] = item['id']
-            result['from'] = item['user']['screen_name']
+            result['id'] = self.raw_value['id']
+            result['from'] = self.raw_value['user']['screen_name']
             result['text'] = full_text
-            result['date'] = datetime.strftime("%a %b %d %H:%M:%S %z %Y", item['created_at'])
+            result['date'] = datetime.strptime(self.raw_value['created_at'], "%a %b %d %H:%M:%S %z %Y")
             return result
         else:
             raise ValueError("Unknown format {0}".format(format))

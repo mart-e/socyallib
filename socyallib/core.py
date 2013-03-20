@@ -46,14 +46,14 @@ class CoreFeed:
         """Return the content of the feed"""
         return self.read(format)
 
-    def __iter__(self, from_index=0, count=0):
+    def __iter__(self, count=FEED_SIZE, from_index=0):
         """A feed is iterable, each iteration return an element"""
         self.iterate_index = from_index
         if count:
             self.iterate_max = count
         return self
 
-    def next(self):
+    def __next__(self):
         if self.iterate_max and self.iterate_index >= self.iterate_max:
             del self.iterate_max
             raise StopIteration
@@ -65,7 +65,11 @@ class CoreFeed:
                 # no more items on the site
                 raise StopIteration()
         self.iterate_index += 1
-        return self.items[self.iterate_index]
+        return self.items[self.iterate_index-1]
+
+    def next(self):
+        """Compatibility level for python2"""
+        return self.__next__()
 
     @property
     def latest(self, **kwargs):
@@ -121,8 +125,8 @@ class CoreFeed:
 
 class CoreFeedItem():
 
-    def __init__(self, raw):
-        self.raw = raw
+    def __init__(self, raw_value):
+        self.raw_value = raw_value
 
     def convert(self, format):
         """Convert a native object into a specified format"""
@@ -130,4 +134,4 @@ class CoreFeedItem():
 
     @property
     def raw(self):
-        return self.raw
+        return self.raw_value
