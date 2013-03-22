@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import logging
 
 
-class CoreManager:
+class CoreManager(object):
     """Basic abstract social site handeler defining methods that any site must
     implement to be usable in a transparent way"""
 
@@ -26,7 +26,7 @@ class CoreManager:
         raise NotImplementedError
 
 
-class CoreFeed:
+class CoreFeed(object):
 
     MAX_UPDATE_DELAY = timedelta(minutes=15)
     FEED_SIZE = 20
@@ -123,7 +123,7 @@ class CoreFeed:
             pass
 
 
-class CoreFeedItem():
+class CoreFeedItem(object):
 
     def __init__(self, raw_value):
         self.raw_value = raw_value

@@ -16,7 +16,7 @@ else:
 class Twitter(OAuth1Manager):
 
     SITE_TYPE = "twitter"
-    API_URL = "https://api.twitter.com/"
+    API_URL = "http://api.twitter.com/"
 
     client_key = "xuPLvAGVnOFOC9iwXEwg"
     client_secret = "sfZs9VX8hJjCCSvVpuQoOZdRnSCATaejNL2253ITTs8"
@@ -57,7 +57,7 @@ class Twitter(OAuth1Manager):
         if type(user) == str:
             if type[0] == '@':
                 user = user[:1]
-        self.logger.info("Twitter feed to {0}".format(timeline_url))
+        self.logger.info("{0} feed to {1}".format(self.SITE_TYPE, timeline_url))
         return TwitterFeed(timeline_url, self.oauth, user)
 
 
@@ -119,8 +119,9 @@ class TwitterFeedItem(CoreFeedItem):
     def convert(self, format):
         # remove t.co urls
         full_text = self.raw_value['text']
-        for url in self.raw_value["entities"]["urls"]:
-            full_text = full_text.replace(url["url"], url["expanded_url"])
+        if "entities" in self.raw_value and "urls" in self.raw_value["entities"]:
+            for url in self.raw_value["entities"]["urls"]:
+                full_text = full_text.replace(url["url"], url["expanded_url"])
 
         if format.lower() == "raw":
             return self.raw_value

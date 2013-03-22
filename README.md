@@ -51,9 +51,3 @@ Several protocols and websites are planned to be supported through the app. More
   * Google+
   * Tent
 * RSS ?
-
-## About API keys
-
-The OAuth keys required to interact with the server are stored in clear text. By the open source nature of this library, it is hard and mostly inefficient to try to hide these keys. These keys are provided as an example and for testing purpose. However, for production, I highly recommand you to change these keys by the one for an application you register. Using API keys published on the internet means than any application can use it and increase the chance of misused and revocation. In addition, websites such as Twitter put a limitation on the number of calls and application can make.
-
-In case of key revocation by the website or limit exceeded, I do NOT ensure the key will be replaced. I may replace it at the next release but using your own keys is the best solution.

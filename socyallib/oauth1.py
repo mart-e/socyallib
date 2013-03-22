@@ -19,12 +19,11 @@ class OAuth1Manager(CoreManager):
     SITE_TYPE = "default"
     API_URL = "https://api.example.com/"
 
-    REQUEST_TOKEN_URI = '/oauth/request_token'
-    AUTHORIZE_URI = '/oauth/authorize?oauth_token='
-    ACCESS_TOKEN_URI = '/oauth/access_token'
+    REQUEST_TOKEN_URI = 'oauth/request_token'
+    REQUEST_ARGS = '?oauth_callback=oob'
+    AUTHORIZE_URI = 'oauth/authorize?oauth_token='
+    ACCESS_TOKEN_URI = 'oauth/access_token'
 
-    # hardcoded credentials are for test only, do not rely on them for your
-    # released application
     client_key = None
     client_secret = None
     token = None
@@ -74,6 +73,15 @@ class OAuth1Manager(CoreManager):
         assert self.account_name in config, "Invalid config file, no account found for {0}".format(self.account_name)
         account_config = config[self.account_name]
 
+        if 'api_url' in account_config:
+            self.API_URL = account_config['api_url']
+        if 'request_token_uri' in account_config:
+            self.REQUEST_TOKEN_URI = account_config['request_token_uri']
+        if 'authorize_uri' in account_config:
+            self.AUTHORIZE_URI = account_config['authorize_uri']
+        if 'access_token_uri' in account_config:
+            self.ACCESS_TOKEN_URI = account_config['access_token_uri']
+
         # client key and client secret are mandatory
         assert 'client_key' in account_config, "Invalid config file, no client key found for account {0}".format(self.account_name)
         self.client_key = str(account_config['client_key'])
@@ -111,14 +119,18 @@ class OAuth1Manager(CoreManager):
         else:
             if wizard:
                 authorize_url = self.get_authorization_url()
-                print('Go to {0} and authorize the application'.format(authorize_url))
-                verifier = input('Please input the verifier: ')
-                (self.token, self.token_secret) = self.retrieve_tokens(verifier)
-                self.oauth = OAuth1(self.client_key,
-                                    client_secret=self.client_secret,
-                                    resource_owner_key=self.token_key,
-                                    resource_owner_secret=self.token_secret)
-                return True
+                if authorize_url:
+                    print('Go to {0} and authorize the application'.format(authorize_url))
+                    verifier = input('Please input the verifier: ')
+                    (self.token, self.token_secret) = self.retrieve_tokens(verifier)
+                    self.oauth = OAuth1(self.client_key,
+                                        client_secret=self.client_secret,
+                                        resource_owner_key=self.token,
+                                        resource_owner_secret=self.token_secret)
+                    return True
+                else:
+                    self.logger.warning("Invalid authorize url")
+                    return False
             else:
                 self.logger.warning("No tokens in manual mode, not authenticated")
                 return False
@@ -139,7 +151,10 @@ class OAuth1Manager(CoreManager):
         to get the final tokens."""
         oauth = OAuth1(self.client_key, client_secret=self.client_secret)
         request_token_url = urljoin(self.API_URL, self.REQUEST_TOKEN_URI)
-        r = requests.post(url=request_token_url, auth=oauth)
+        r = requests.post(url=request_token_url+self.REQUEST_ARGS, auth=oauth)
+        if r.status_code != 200:
+            self.logger.error(r.content)
+            return False
         credentials = parse_qs(r.content.decode())
         self.temporary_token = credentials.get('oauth_token')[0]
         self.temporary_token_secret = credentials.get('oauth_token_secret')[0]
