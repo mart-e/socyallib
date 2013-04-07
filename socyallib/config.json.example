@@ -1,7 +1,13 @@
 {
-    "MyTwitter":{
-        "site_type":"twitter",
+    "Twitter": {
+        "site_type": "twitter",
         "client_key": "xuPLvAGVnOFOC9iwXEwg", 
         "client_secret": "sfZs9VX8hJjCCSvVpuQoOZdRnSCATaejNL2253ITTs8"
+    },
+    "identica": {
+    	"site_type": "statusnet",
+    	"api_url": "https://identi.ca/api/",
+    	"client_key": "913c61308b2907177fbd38a07fb794b5",
+    	"client_secret": "bd40d48b83e35025c5881571e33bcc80"
     }
 }

@@ -13,7 +13,7 @@ Social networking websites are made for humans and let them interact between eac
     Verifier: 123456
     Account authenticated
     >>> tw.post("Long live API !")
-    >>> for tweet in tw.timeline(count=20):
+    >>> for tweet in tw.timeline.read(count=20):
     ...   print(tweet.text)
 
 Websites often provide activity feeds in their own format which makes the hell of a job for developpers to mix feeds from different websites in one application. That should not be the case.

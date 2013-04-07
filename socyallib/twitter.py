@@ -2,6 +2,7 @@ from .oauth1 import OAuth1Manager
 from .core import CoreFeed, CoreFeedItem, Struct
 
 from datetime import datetime
+#from dateutil import parser
 import requests
 import json
 import logging
@@ -61,7 +62,31 @@ class Twitter(OAuth1Manager):
         return TwitterFeed(timeline_url, self.oauth, user)
 
 
+class TwitterFeedItem(CoreFeedItem):
+
+    def convert(self, format):
+        # remove t.co urls
+        full_text = self.raw_value['text']
+        if "entities" in self.raw_value and "urls" in self.raw_value["entities"]:
+            for url in self.raw_value["entities"]["urls"]:
+                full_text = full_text.replace(url["url"], url["expanded_url"])
+
+        if format.lower() == "raw":
+            return self.raw_value
+        if format.lower() == "activitystream":
+            result = {}
+            result['id'] = self.raw_value['id']
+            result['sender'] = self.raw_value['user']['screen_name']
+            result['text'] = full_text
+            #result['date'] = datetime.strptime(self.raw_value['created_at'], "%a %b %d %H:%M:%S %z %Y")
+            return Struct(result)
+        else:
+            raise ValueError("Unknown format {0}".format(format))
+
+
 class TwitterFeed(CoreFeed):
+
+    ITEM_TYPE = TwitterFeedItem
 
     def __init__(self, feed_url, oauth, user):
         self.oauth = oauth
@@ -85,7 +110,7 @@ class TwitterFeed(CoreFeed):
         result = []
         items = json.loads(r.content.decode())
         for item in items:
-            result.append(TwitterFeedItem(item))
+            result.append(self.ITEM_TYPE(item))
         return result
 
     def _update(self, size, **kwargs):
@@ -112,25 +137,3 @@ class TwitterFeed(CoreFeed):
             else:
                 # retieve next batch of items
                 pass
-
-
-class TwitterFeedItem(CoreFeedItem):
-
-    def convert(self, format):
-        # remove t.co urls
-        full_text = self.raw_value['text']
-        if "entities" in self.raw_value and "urls" in self.raw_value["entities"]:
-            for url in self.raw_value["entities"]["urls"]:
-                full_text = full_text.replace(url["url"], url["expanded_url"])
-
-        if format.lower() == "raw":
-            return self.raw_value
-        if format.lower() == "object":
-            result = {}
-            result['id'] = self.raw_value['id']
-            result['sender'] = self.raw_value['user']['screen_name']
-            result['text'] = full_text
-            result['date'] = datetime.strptime(self.raw_value['created_at'], "%a %b %d %H:%M:%S %z %Y")
-            return Struct(result)
-        else:
-            raise ValueError("Unknown format {0}".format(format))
