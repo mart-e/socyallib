@@ -57,7 +57,7 @@ class CoreFeed(object):
         self.url = feed_url
         self.items = []
         self.last_update = None
-        self.logger = logging.getLogger('socyallib.core.feed')
+        self.logger = logging.getLogger(__name__+'core.feed')
 
         self.update()
 

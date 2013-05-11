@@ -28,4 +28,4 @@ class StatusNet(Twitter):
 
     def __init__(self, account_name="StatusNet", **kwargs):
         super(StatusNet, self).__init__(account_name, **kwargs)
-        self.logger = logging.getLogger('socyallib.statusnet')
+        self.logger = logging.getLogger(__name__+'statusnet')

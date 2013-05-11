@@ -42,7 +42,7 @@ class OAuth1Manager(CoreManager):
         It is the responsability of the program to handle the storage of
         credentials."""
         self.account_name = account_name
-        self.logger = logging.getLogger('socyallib.oauth1')
+        self.logger = logging.getLogger(__name__+'oauth1')
 
         if configuration_file is None:
             self.store_configuration = False

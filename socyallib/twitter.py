@@ -28,7 +28,7 @@ class Twitter(OAuth1Manager):
 
     def __init__(self, account_name="Twitter", **kwargs):
         super(Twitter, self).__init__(account_name, **kwargs)
-        self.logger = logging.getLogger('socyallib.twitter')
+        self.logger = logging.getLogger(__name__+'twitter')
 
     @property
     def timeline(self):
