@@ -86,7 +86,13 @@ class Twitter(OAuth1Manager):
 
         data = {'status': message}
         url = urljoin(self.API_URL, uri)
-        r = requests.post(url=self.url, auth=self.oauth, params=data)
+        r = requests.post(url=url, auth=self.oauth, params=data)
+        if r.status_code != 200:
+            self.logger.error(r.content)
+            return False
+        else:
+            self.logger.info("Notice posted")
+            return True
 
 
 class TwitterFeedItem(CoreFeedItem):
