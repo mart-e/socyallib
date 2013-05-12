@@ -22,7 +22,12 @@ class CoreManager(object):
         raise NotImplementedError
 
     def post(self, **kwargs):
-        """Post action to the site"""
+        """Post action to the site
+
+        :message (str): the message to post
+        :attachements (list or str): one filename or a list of filenames (str)
+         to attach to the message
+        """
         raise NotImplementedError
 
 class CoreFeedItem(object):

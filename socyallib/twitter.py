@@ -25,6 +25,8 @@ class Twitter(OAuth1Manager):
     HOME_TIMELINE_URI = '1.1/statuses/home_timeline.json'
     MENTION_TIMELINE_URI = '1.1/statuses/mentions_timeline.json'
     USER_TIMELINE_URI = '1.1/statuses/user_timeline.json'
+    POST_URI = '1.1/statuses/update.json'
+    POST_ATTACHEMENTS_URI = '1.1/statuses/update_with_media.json'
 
     def __init__(self, account_name="Twitter", **kwargs):
         super(Twitter, self).__init__(account_name, **kwargs)
@@ -60,6 +62,31 @@ class Twitter(OAuth1Manager):
                 user = user[:1]
         self.logger.info("{0} feed to {1}".format(self.SITE_TYPE, timeline_url))
         return TwitterFeed(timeline_url, self.oauth, user)
+
+    def post(self, message, attachements=None):
+        """Post action to the site"""
+        if attachements:
+            uri = self.POST_ATTACHEMENTS_URI
+            if type(attachements) == str:
+                # one element
+                pass
+            elif type(attachements) == list:
+                if type(attachements[0]) != str:
+                    # we know there is at least one element otherwise 'if attachements' would be False
+                    raise ValueError("Unknown attachements type {0}, should be a list of filenames (str)".format(type(attachements)))
+                else:
+                    pass
+            else:
+                raise ValueError("Unknown attachements type {0}, should be a list of filenames (str)".format(type(attachements)))
+            # TODO accept binary content
+        else:
+            uri = self.POST_URI
+        if type(message) != str:
+            raise ValueError("Unknown message type {0}, should be string".format(type(message)))
+
+        data = {'status': message}
+        url = urljoin(self.API_URL, uri)
+        r = requests.post(url=self.url, auth=self.oauth, params=data)
 
 
 class TwitterFeedItem(CoreFeedItem):
