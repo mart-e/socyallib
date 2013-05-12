@@ -17,16 +17,16 @@ else:
 class Twitter(OAuth1Manager):
 
     SITE_TYPE = "twitter"
-    API_URL = "http://api.twitter.com/"
+    API_URL = "http://api.twitter.com/1.1/"
 
     client_key = "xuPLvAGVnOFOC9iwXEwg"
     client_secret = "sfZs9VX8hJjCCSvVpuQoOZdRnSCATaejNL2253ITTs8"
 
-    HOME_TIMELINE_URI = '1.1/statuses/home_timeline.json'
-    MENTION_TIMELINE_URI = '1.1/statuses/mentions_timeline.json'
-    USER_TIMELINE_URI = '1.1/statuses/user_timeline.json'
-    POST_URI = '1.1/statuses/update.json'
-    POST_ATTACHEMENTS_URI = '1.1/statuses/update_with_media.json'
+    HOME_TIMELINE_URI = 'statuses/home_timeline.json'
+    MENTION_TIMELINE_URI = 'statuses/mentions_timeline.json'
+    USER_TIMELINE_URI = 'statuses/user_timeline.json'
+    POST_URI = 'statuses/update.json'
+    POST_ATTACHEMENTS_URI = 'statuses/update_with_media.json'
 
     def __init__(self, account_name="Twitter", **kwargs):
         super(Twitter, self).__init__(account_name, **kwargs)
