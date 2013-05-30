@@ -21,14 +21,16 @@ class CoreManager(object):
         """Returns an object inheriting from CoreFeed"""
         raise NotImplementedError
 
-    def post(self, **kwargs):
+    def post(self, message="", attachements=None, in_reply_to=None, **kwargs):
         """Post action to the site
 
         :message (str): the message to post
         :attachements (list or str): one filename or a list of filenames (str)
          to attach to the message
+        :in_reply_to (CoreFeedItem): item or list of items to reply
         """
         raise NotImplementedError
+
 
 class CoreFeedItem(object):
 
@@ -51,6 +53,17 @@ class CoreFeedItem(object):
     @property
     def raw(self):
         return self.raw_value
+
+    @property
+    def author(self):
+        """Returns the name of the author (str)"""
+        raise NotImplementedError
+
+    @property
+    def author_id(self):
+        """Returns the identifier of the author (str)"""
+        raise NotImplementedError
+
 
 class CoreFeed(object):
 

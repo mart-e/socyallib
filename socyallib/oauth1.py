@@ -20,7 +20,7 @@ class OAuth1Manager(CoreManager):
     API_URL = "https://api.example.com/"
 
     REQUEST_TOKEN_URI = 'oauth/request_token'
-    REQUEST_ARGS = '?oauth_callback=oob'
+    REQUEST_ARGS = ''
     AUTHORIZE_URI = 'oauth/authorize?oauth_token='
     ACCESS_TOKEN_URI = 'oauth/access_token'
 

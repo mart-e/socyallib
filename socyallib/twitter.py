@@ -63,8 +63,12 @@ class Twitter(OAuth1Manager):
         self.logger.info("{0} feed to {1}".format(self.SITE_TYPE, timeline_url))
         return TwitterFeed(timeline_url, self.oauth, user)
 
-    def post(self, message, attachements=None):
+    def post(self, message="", attachements=None, in_reply_to=None):
         """Post action to the site"""
+        if type(message) != str:
+            raise ValueError("Unknown message type {0}, should be string".format(type(message)))
+        data = {'status': message}
+
         if attachements:
             uri = self.POST_ATTACHEMENTS_URI
             if type(attachements) == str:
@@ -81,10 +85,15 @@ class Twitter(OAuth1Manager):
             # TODO accept binary content
         else:
             uri = self.POST_URI
-        if type(message) != str:
-            raise ValueError("Unknown message type {0}, should be string".format(type(message)))
 
-        data = {'status': message}
+        if in_reply_to:
+            if type(in_reply_to) == list:
+                # can reply to only one element
+                in_reply_to = in_reply_to[0]
+            if not isinstance(in_reply_to, TwitterFeedItem):
+                raise ValueError("Invalid in_reply_to format %s" % type(in_reply_to))
+            data['in_reply_to_status_id'] = in_reply_to.raw_value['id']
+
         url = urljoin(self.API_URL, uri)
         r = requests.post(url=url, auth=self.oauth, params=data)
         if r.status_code != 200:
@@ -116,6 +125,14 @@ class TwitterFeedItem(CoreFeedItem):
         else:
             raise ValueError("Unknown format {0}".format(format))
 
+    @property
+    def author(self):
+        return self.raw_value["user"]["name"]
+
+    @property
+    def author_id(self):
+        return self.raw_value["user"]["screen_name"]
+
 
 class TwitterFeed(CoreFeed):
 
@@ -132,16 +149,17 @@ class TwitterFeed(CoreFeed):
         if self.user:
             data['screen_name'] = self.user
         r = requests.get(url=self.url, auth=self.oauth, params=data)
+        content = r.content.decode()
         if r.status_code != 200:
-            if 'errors' in r.content:
-                for error_msg in r.content['errors']:
+            if "errors" in content:
+                for error_msg in content["errors"]:
                     self.logger.error(error_msg)
             else:
-                self.logger.error(r.content)
+                self.logger.error(content)
             return []
 
         result = []
-        items = json.loads(r.content.decode())
+        items = json.loads(content)
         for item in items:
             result.append(self.ITEM_TYPE(item))
         return result
@@ -151,15 +169,16 @@ class TwitterFeed(CoreFeed):
         if self.user:
             data['screen_name'] = self.user
         r = requests.get(url=self.url, auth=self.oauth, params=data)
+        content = r.content.decode()
         if r.status_code != 200:
-            if 'errors' in r.content:
-                for error_msg in r.content['errors']:
+            if "errors" in content:
+                for error_msg in content["errors"]:
                     self.logger.error(error_msg)
             else:
-                self.logger.error(r.content)
+                self.logger.error(content)
             return []
 
-        items = json.loads(r.content.decode())
+        items = json.loads(content)
         sorted_items = sorted(items, key=lambda k: k['date'], invert=True)
         last_date = datetime.strftime("%a %b %d %H:%M:%S %z %Y", sorted_items[-1]['created_at'])
         if len(self.items) > 0:

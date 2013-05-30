@@ -18,6 +18,7 @@ class StatusNet(Twitter):
 
     SITE_TYPE = "statusnet"
     API_URL = "https://identi.ca/api/"  # to change for other instances
+    REQUEST_ARGS = '?oauth_callback=oob'
 
     client_key = "913c61308b2907177fbd38a07fb794b5"
     client_secret = "bd40d48b83e35025c5881571e33bcc80"
