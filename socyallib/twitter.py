@@ -2,7 +2,6 @@ from .oauth1 import OAuth1Manager
 from .core import CoreFeed, CoreFeedItem, Struct
 
 from datetime import datetime
-#from dateutil import parser
 import requests
 import json
 import logging
@@ -90,9 +89,12 @@ class Twitter(OAuth1Manager):
             if type(in_reply_to) == list:
                 # can reply to only one element
                 in_reply_to = in_reply_to[0]
-            if not isinstance(in_reply_to, TwitterFeedItem):
+            if type(in_reply_to) == int:
+                data['in_reply_to_status_id'] = in_reply_to
+            elif isinstance(in_reply_to, TwitterFeedItem):
+                data['in_reply_to_status_id'] = in_reply_to.raw_value['id']
+            else:
                 raise ValueError("Invalid in_reply_to format %s" % type(in_reply_to))
-            data['in_reply_to_status_id'] = in_reply_to.raw_value['id']
 
         url = urljoin(self.API_URL, uri)
         r = requests.post(url=url, auth=self.oauth, params=data)

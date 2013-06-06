@@ -27,7 +27,8 @@ class CoreManager(object):
         :message (str): the message to post
         :attachements (list or str): one filename or a list of filenames (str)
          to attach to the message
-        :in_reply_to (CoreFeedItem): item or list of items to reply
+        :in_reply_to: item, list of items to reply (items being CoreFeedItem
+            or ID as an int)
         """
         raise NotImplementedError
 
