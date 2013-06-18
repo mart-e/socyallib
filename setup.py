@@ -14,6 +14,7 @@ setup(
     description="Python library to interact with socyal networking websites",
     long_description=open('README.md').read(),
     include_package_data=True,
+    install_requires=["requests"],
     url="https://github.com/mart-e/socyallib",
     classifiers=[
         "Programming Language :: Python",
